@@ -27,7 +27,7 @@ def soupify_email(email: str) -> EmailSoup:
     html_body = email.get_body(preferencelist=('html')).get_content()
     html_soup = BeautifulSoup(html_body, features="lxml")
     email_soup = EmailSoup(
-        html_soup = html_soup
+        html_soup = html_soup,
         soup_text = _extract_soup_text(html_soup),
         html_body = html_body,
     )
