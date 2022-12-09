@@ -5,6 +5,8 @@ from typing import Optional
 from email.parser import Parser
 from email.policy import default as default_policy
 from dataclasses import dataclass
+from lxml import html
+
 
 MULTIPLE_SPACES_REGEX = re.compile(r"[\s\u200c]+")
 
@@ -13,6 +15,7 @@ class EmailSoup:
     html_body: Optional[Tag]
     soup_text: str
     html_soup: BeautifulSoup
+    xml_tree: html.HtmlElement
 
 def soupify_email(email: str) -> EmailSoup:
     """Convert an email string to a BeautifulSoup object.
@@ -26,10 +29,12 @@ def soupify_email(email: str) -> EmailSoup:
     email = Parser(policy=default_policy).parsestr(email)
     html_body = email.get_body(preferencelist=('html')).get_content()
     html_soup = BeautifulSoup(html_body, features="lxml")
+    xml_tree = html.fromstring(html_body)
     email_soup = EmailSoup(
         html_soup = html_soup,
         soup_text = _extract_soup_text(html_soup),
         html_body = html_body,
+        xml_tree = xml_tree,
     )
     return email_soup
 
