@@ -1,6 +1,6 @@
 [project]
 name = "email_to_soup"
-version = "0.0.6"
+version = "0.0.7"
 authors = [
   { name="Dev Tanna", email="dev.tanna@gmail.com" },
 ]

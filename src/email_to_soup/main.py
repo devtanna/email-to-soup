@@ -1,7 +1,7 @@
 import re
 from bs4 import BeautifulSoup
 from bs4 import Tag
-from typing import Optional
+from typing import Optional, Tuple
 from email.parser import Parser
 from email.policy import default as default_policy
 from dataclasses import dataclass
@@ -18,6 +18,7 @@ class EmailSoup:
     html_soup: BeautifulSoup
     xml_tree: html.HtmlElement
     markdown_text: str = None
+    url_soup: Tuple[str, dict] = None
 
 def soupify_email(email: str) -> EmailSoup:
     """Convert an email string to a BeautifulSoup object.
@@ -37,7 +38,8 @@ def soupify_email(email: str) -> EmailSoup:
         soup_text = _extract_soup_text(html_soup),
         html_body = html_body,
         xml_tree = xml_tree,
-        markdown_text = _markdownify_email(html_body)
+        markdown_text = _markdownify_email(html_body),
+        url_soup = _extract_url_soup(html_soup)
     )
     return email_soup
 
@@ -53,7 +55,7 @@ def _markdownify_email(html_body: str) -> Optional[str]:
     except Exception:
         return ""
 
-def _extract_soup_text(html_soup: BeautifulSoup, ignore_links=True) -> str:
+def _extract_soup_text(html_soup: BeautifulSoup) -> str:
     try:
         soup_text = re.sub(
             MULTIPLE_SPACES_REGEX, " ", html_soup.get_text(strip=True, separator=" ")
@@ -61,10 +63,21 @@ def _extract_soup_text(html_soup: BeautifulSoup, ignore_links=True) -> str:
     except Exception:  # pylint: disable=broad-except
         return ""
 
-    if not ignore_links:
-        # loop over all links and and mention them in the soup text
-        for link in html_soup.find_all("a"):
-            # get the link text and url
-            soup_text += f"{link.text.strip()} url: {link.get('href')}.\n"
-
     return soup_text
+
+def _extract_url_soup(html_soup: BeautifulSoup) -> Tuple[str, dict]:
+    url_soup = ""
+    link_counter = 1
+    url_dict = {}
+    for link in html_soup.find_all("a"):
+        full_link = link.get("href")
+        enumerated_link = f"https://{link_counter}.com"
+
+        # add the link to the url dict
+        url_dict[enumerated_link] = full_link
+        # get the link text and url
+        url_soup += f"{link.text.strip()} url: {enumerated_link}.\n"
+
+        link_counter += 1
+
+    return (url_soup, url_dict)
