@@ -34,7 +34,7 @@ def soupify_email(email: str) -> EmailSoup:
 
     # Oh, the wonders of HTML emails. Some emails have multiple <html> tags. Let's the one with more content.
     if html_body:
-        html_body = max(re.findall(r"<html .*?</html>", html_body, re.M|re.S|re.I), key=len)
+        html_body = max(re.findall(r"<html.*?</html>", html_body, re.M|re.S|re.I), key=len) or html_body
 
     html_soup = BeautifulSoup(html_body, features="lxml")
     xml_tree = html.fromstring(html_body)
